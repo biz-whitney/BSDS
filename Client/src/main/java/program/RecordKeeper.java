@@ -1,4 +1,4 @@
-package model;
+package program;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,3 +58,4 @@ public class RecordKeeper {
     this.csvFileBuilder = csvFileBuilder;
   }
 }
+

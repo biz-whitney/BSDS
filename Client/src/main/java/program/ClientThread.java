@@ -1,20 +1,23 @@
-import api.SkierAPI;
-import java.io.IOException;
-import java.net.URISyntaxException;
+package program;
+
+import io.swagger.client.ApiException;
+import io.swagger.client.ApiResponse;
+import io.swagger.client.api.SkiersApi;
+import io.swagger.client.model.LiftRide;
+import io.swagger.client.model.SkierVertical;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
-import model.LiftRide;
-import model.RecordKeeper;
+
 
 /**
  * The thread that will execute the POST and GET requests.
  */
 
 public class ClientThread implements Runnable {
-  private SkierAPI skierAPI = new SkierAPI();
+  private SkiersApi skiersApi = new SkiersApi();
   private Random rand = new Random();
   private int successRequestCount = 0;
   private int errorRequestCount = 0;
@@ -127,7 +130,8 @@ public class ClientThread implements Runnable {
    * @return the response code for the request
    */
   private int postLiftRide() {
-    int responseCode = 0;
+    int responseCode = 400;
+    ApiResponse<Void> response = null;
     int minNumOfLifts = 5;
     int skierId = rand.ints(startSkierId, endSkierId + 1).findFirst().getAsInt();
     int time = rand.ints(startTime, endTime + 1).findFirst().getAsInt();
@@ -135,10 +139,10 @@ public class ClientThread implements Runnable {
     LiftRide liftRide = new LiftRide(resortId, Integer.toString(dayId),
         Integer.toString(lift), Integer.toString(skierId), Integer.toString(time));
     try {
-      responseCode = skierAPI.writeNewLiftRide(liftRide);
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (URISyntaxException e) {
+      response  = skiersApi.writeNewLiftRideWithHttpInfo(liftRide);
+      responseCode = response.getStatusCode();
+    } catch (ApiException e) {
+      responseCode = e.getCode();
       e.printStackTrace();
     }
     return responseCode;
@@ -151,15 +155,15 @@ public class ClientThread implements Runnable {
    * @return the response code for the request
    */
   private int getSkierDayVertical(String skierId) {
-    int response = 0;
+    int responseCode = 400;
+    ApiResponse<SkierVertical> response = null;
     try {
-      response = skierAPI.getSkierDayVertical(resortId, Integer.toString(dayId),
-          skierId);
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (URISyntaxException e) {
+      response = skiersApi.getSkierDayVerticalWithHttpInfo(resortId, Integer.toString(dayId), skierId);
+      responseCode = response.getStatusCode();
+    } catch (ApiException e) {
+      responseCode = e.getCode();
       e.printStackTrace();
     }
-    return response;
+    return responseCode;
   }
 }

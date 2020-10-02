@@ -1,3 +1,5 @@
+package program;
+
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import java.io.FileWriter;
@@ -7,7 +9,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
-import model.RecordKeeper;
 
 
 /**
@@ -104,28 +105,6 @@ public class Main {
     return t;
   }
 
-  /**
-   * Saves the recordData to a csv file
-   * @throws IOException thrown if errors are encountered while saving data to csv
-   */
-  public void saveRecordToCSV() throws IOException {
-    FileWriter csvWriter = new FileWriter("requestRecord.csv");
-    csvWriter.append("start_time");
-    csvWriter.append(",");
-    csvWriter.append("request_types");
-    csvWriter.append(",");
-    csvWriter.append("latency");
-    csvWriter.append(",");
-    csvWriter.append("response_code");
-    csvWriter.append("\n");
-    for (List<String> rowData : this.recordKeeper.getCsvFileBuilder()) {
-      csvWriter.append(String.join(",", rowData));
-      csvWriter.append("\n");
-    }
-    csvWriter.flush();
-    csvWriter.close();
-  }
-
 
   /**
    * prints out the request for part 1 of the requirements
@@ -143,79 +122,6 @@ public class Main {
     System.out.println();
   }
 
-  /**
-   * prints out the request for part 2 of the requirements
-   * @throws IOException thrown if errors are encountered while saving data to csv
-   */
-  public void printPartTwoResult(double wallTime) throws IOException {
-    this.saveRecordToCSV();
-    List<Integer> getList = this.getRequestTimes( "GET");
-    List<Integer>  postList = this.getRequestTimes("POST");
-//    List<Integer> allList = new ArrayList<>(getList);
-//    allList.addAll(postList);
-//    int totalTime = getList.stream().mapToInt(a -> a).sum();
-    System.out.println("PART 2 RESULTS");
-    System.out.println("Mean Post time: " + postList.stream().mapToDouble(a -> a).average().getAsDouble());
-    System.out.println("Mean Get time: " + getList.stream().mapToDouble(a -> a).average().getAsDouble());
-    System.out.println("Median Post time: " + this.calculateMedian(postList));
-    System.out.println("Median Get time: " + this.calculateMedian(getList));
-    System.out.println("Total Wall: " + wallTime);
-    System.out.println("Throughput: " + (getList.size() + postList.size()) / wallTime);
-    System.out.println("p99 For Post: " + this.calculate99Percentile(postList));
-    System.out.println("p99 For Get: " + this.calculate99Percentile(getList));
-    System.out.println("Max Post time: " + postList.stream().mapToDouble(a -> a).max().getAsDouble());
-    System.out.println("Max Get time: " + getList.stream().mapToDouble(a -> a).max().getAsDouble());
-  }
-
-  /**
-   * Calculates the median for a list of request times
-   * @param list the list of request times
-   * @return the median time for a request
-   */
-  private double calculateMedian(List<Integer> list) {
-    list.sort(Comparator.comparingInt(Integer::intValue));
-    double median = list.get(list.size()/2);
-    if (list.size() % 2 == 0) {
-      median = (median + list.get(list.size() / 2-1)) / 2;
-    }
-    return median;
-  }
-
-
-  /**
-   * Calculates the 99 percentile
-   * @param listOfTimes list of request times
-   * @return the 99 percentile time
-   */
-  private double calculate99Percentile(List<Integer> listOfTimes) {
-    double time99 = listOfTimes.stream().mapToInt(a -> a).sum() * .99;
-    listOfTimes.sort(Comparator.comparingInt(Integer::intValue));
-    int runningSum = 0;
-    for (Integer time: listOfTimes) {
-      if (runningSum + time >= time99) {
-        return time;
-      }
-      runningSum += time;
-    }
-    return listOfTimes.get(listOfTimes.size() - 1);
-  }
-
-  /**
-   * Organizes the request times into a list
-   * @param requestType the type of request
-   * @return a list of the request time based on the request type
-   */
-  private List<Integer> getRequestTimes(String requestType) {
-    List<List<String>> requestTypeList =
-        this.recordKeeper.getCsvFileBuilder().stream().filter(
-            row -> row.get(1).equals(requestType)).collect(
-            Collectors.toList());
-    List<Integer> result = new ArrayList<>();
-    for (List<String> row: requestTypeList) {
-      result.add(Integer.parseInt(row.get(2)));
-    }
-    return result;
-  }
 
 
   /**
@@ -243,8 +149,6 @@ public class Main {
     long startPhasesTime = System.currentTimeMillis();
     main.phaseOne();
     long endPhasesTime = System.currentTimeMillis();
-    double wallTime = endPhasesTime - startPhasesTime;
     main.printPartOneResult(startPhasesTime, endPhasesTime);
-    main.printPartTwoResult(wallTime);
   }
 }
