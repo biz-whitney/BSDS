@@ -1,6 +1,7 @@
 package servlet;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -8,11 +9,14 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import model.TotalVerticalDay;
+import model.LiftRide;
+import dto.Message;
+import dto.TotalVerticalDay;
+
 
 @WebServlet(name = "servlet.SkierServlet")
 public class SkierServlet extends HttpServlet {
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private Gson gson = new Gson();
 
   /**
    * Post a lift ride to the DB
@@ -24,7 +28,7 @@ public class SkierServlet extends HttpServlet {
   protected void doPost(HttpServletRequest request,
       HttpServletResponse response)
       throws ServletException, IOException {
-    response.setContentType("text/plain");
+    response.setContentType("application/json");
     String urlPath = request.getPathInfo();
     String[] urlParts = urlPath.split("/");
     if (urlPath == null || urlPath.length() == 0) {
@@ -34,11 +38,13 @@ public class SkierServlet extends HttpServlet {
     }
     if (!isPostUrlValid(urlParts)) {
       response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+      Message message = new Message("Error");
+      response.getWriter().write(gson.toJson(message));
     } else {
       response.setStatus(HttpServletResponse.SC_OK);
       BufferedReader bufferedReader = request.getReader();
-      String liftRider = readStringIn(bufferedReader);
-      response.getWriter().write("200");
+      String lifeRideString = readStringIn(bufferedReader);
+      LiftRide liftRide = gson.fromJson(lifeRideString, LiftRide.class);
     }
   }
 
@@ -53,7 +59,7 @@ public class SkierServlet extends HttpServlet {
   protected void doGet(HttpServletRequest req,
       HttpServletResponse res)
       throws ServletException, IOException {
-    res.setContentType("text/plain");
+    res.setContentType("application/json");
     String urlPath = req.getPathInfo();
 
     String[] resorts = req.getParameterValues("resort");
@@ -66,12 +72,12 @@ public class SkierServlet extends HttpServlet {
     String[] urlParts = urlPath.split("/");
     if (!isUrlValid(urlParts)) {
       res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+      Message message = new Message("Error");
+      res.getWriter().write(gson.toJson(message));
     } else {
       res.setStatus(HttpServletResponse.SC_OK);
-//      TotalVerticalDay data = new TotalVerticalDay("resort", 100);
-//      String jsonString = objectMapper.writeValueAsString(data);
-//      res.getWriter().write(jsonString);
-      res.getWriter().write("200");
+      TotalVerticalDay data = new TotalVerticalDay("resort", 100);
+      res.getWriter().write(gson.toJson(data));
     }
   }
 

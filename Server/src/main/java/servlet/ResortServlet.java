@@ -1,14 +1,20 @@
 package servlet;
 
+import com.google.gson.Gson;
 import java.io.IOException;
+import java.util.ArrayList;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import dto.Message;
+import dto.SkierVertical;
+import dto.TopTenSkiers;
 
 @WebServlet(name = "servlet.ResortServlet")
 public class ResortServlet extends HttpServlet {
+  private Gson gson = new Gson();
 
   /**
    * Post a lift ride to the DB
@@ -33,7 +39,7 @@ public class ResortServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request,
       HttpServletResponse response)
       throws ServletException, IOException {
-      response.setContentType("text/plain");
+      response.setContentType("application/json");
       String urlPath = request.getPathInfo();
       String[] resorts = request.getParameterValues("resort");
 
@@ -46,9 +52,12 @@ public class ResortServlet extends HttpServlet {
       String[] urlParts = urlPath.split("/");
       if (!isUrlValid(urlParts)) {
         response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        Message message = new Message("Error");
+        response.getWriter().write(gson.toJson(message));
       } else {
         response.setStatus(HttpServletResponse.SC_OK);
-        response.getWriter().write("200");
+        TopTenSkiers topTenSkiers = new TopTenSkiers(new ArrayList<SkierVertical>());
+        response.getWriter().write(gson.toJson(topTenSkiers));
       }
   }
 
